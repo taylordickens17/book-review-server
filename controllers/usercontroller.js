@@ -2,6 +2,19 @@ var router = require('express').Router();
 var User = require('../db').import('../models/user');
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
+var sequelize = require('../db');
+var Log = sequelize.import('../models/books');
+
+//GET ALL BOOKS EVERY LAST ONE
+router.get('/allbooks', (req, res) => {
+    Log.findAll()
+        .then(function findAllSuccess(data) {
+            res.json(data);
+        })
+        .catch(err => res.status(500).json({
+            error: err
+        }))
+})
 
 //POST SIGNUP
 router.post('/signup', function (req, res) {
