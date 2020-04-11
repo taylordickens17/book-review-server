@@ -1,70 +1,70 @@
-var router = require('express').Router();
-var User = require('../db').import('../models/user');
-var bcrypt = require('bcryptjs');
-var jwt = require('jsonwebtoken');
-var sequelize = require('../db');
-var Log = sequelize.import('../models/books');
+const router = require('express').Router();
+const User = require('../db').import('../models/user');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-//GET ALL BOOKS EVERY LAST ONE
-router.get('/allbooks', (req, res) => {
-    Log.findAll()
-        .then(function findAllSuccess(data) {
-            res.json(data);
-        })
-        .catch(err => res.status(500).json({
-            error: err
-        }))
-})
-
-//POST SIGNUP
-router.post('/signup', function (req, res) {
-    const username = req.body.user.username;
-    const pass = req.body.user.password;
+//USER SIGNUP
+router.post('/signup', (req, res) => {
 
     User.create({
-        username: username,
-        password: bcrypt.hashSync(pass, 10)
+        username: req.body.username,
+        password: bcrypt.hashSync(req.body.password, 10)
     }).then(
-        function createSuccess(user) {
+        createSuccess = (user) => {
 
-            var token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: 60 * 60 * 24 });
-
+            let token = jwt.sign({
+                id: user.id
+            }, process.env.JWT_SECRET, {
+                expiresIn: 60 * 60 * 24
+            });
             res.json({
                 user: user,
                 message: 'signed up',
                 sessionToken: token
             });
         },
-        function createError(err) {
-            res.send(500, err.message);
+        createError = err => {
+            res.send(500, err);
         }
     );
 });
 
-//POST LOGIN
-router.post('/login', function (req, res) {
-    User.findOne({ where: { username: req.body.user.username } }).then(
-        function (user) {
-            if (user) {
-                bcrypt.compare(req.body.user.password, user.password, function (err, matches) {
-                    if (matches) {
-                        var token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: 60 * 60 * 24 });
-                        res.json({
-                            user: user,
-                            message: "Successfully logged in",
-                            sessionToken: token
-                        });
-                    } else {
-                        res.status(502).send({ error: "You failed to login." });
-                    }
-                });
-            } else {
-                res.status(500).send({ error: "You failed to authenticate." });
-            }
-        },
-        function (err) {
-            res.status(501).send({ error: "You failed to login." });
+//USER LOGIN
+router.post('/login', (req, res) => {
+    User.findOne({
+        where: {
+            username: req.body.username
         }
+    }).then(user => {
+        if (user) {
+            bcrypt.compare(req.body.password, user.password, (err, matches) => {
+                if (matches) {
+                    let token = jwt.sign({
+                        id: user.id
+                    }, process.env.JWT_SECRET, {
+                        expiresIn: 60 * 60 * 24
+                    });
+                    res.json({
+                        user: user,
+                        message: "Successfully logged in",
+                        sessionToken: token
+                    });
+                } else {
+                    res.status(502).send({
+                        error: "You failed to login."
+                    })
+                }
+            });
+        } else {
+            res.status(500).send({
+                error: "You failed to authenticate."
+            })
+        }
+    }, err => {
+        status(501).send({
+            error: "You failed to login."
+        });
+    }
     );
 });
 

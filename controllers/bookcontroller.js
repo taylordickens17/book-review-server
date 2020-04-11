@@ -1,119 +1,72 @@
-var express = require('express');
-var router = express.Router();
-var sequelize = require('../db');
-var Log = sequelize.import('../models/books');
+const express = require('express');
+const router = express.Router();
+const sequelize = require('../db');
+const Books = sequelize.import('../models/books');
 
-//ALL CONNECTED TO THE /AUTH
-//POST CREATE LOG
-router.post('/create/log', function (req, res) {
-    var owner = req.user.id
-    var title = req.body.title;
-    var author = req.body.author;
-    var genre = req.body.genre;
-    var rating = req.body.rating;
-    var description = req.body.description;
-    var review = req.body.review;
-
-    Log.create({
-        owner: owner,
-        title: title,
-        author: author,
-        genre: genre,
-        rating: rating,
-        description: description,
-        review: review
-    })
+//POST CREATE BOOK
+router.post('/create', (req, res) => {
+    const booksFromRequest = {
+        userId: req.user.id,
+        title: req.body.title,
+        author: req.body.author,
+        genre: req.body.genre,
+        rating: req.body.rating,
+        description: req.body.description,
+        review: req.body.review,
+    }
+    Books.create(booksFromRequest)
         .then(data => res.status(200).json(data))
-        .catch(err => res.json({ error: err }))
+        .catch(err => res.status(500).json({
+            error: err
+        }))
 });
 
-//GET ALL LOG
-router.get('/all/log', function (req, res) {
-    const userid = req.user.id
+//GET ALL BOOKS EVERY LAST ONE
+router.get('/allbooks', (req, res) => {
+    Books.findAll()
 
-    Log.findAll({
-        where: { owner: userid }
-    }).then(
-        function findAllSuccess(data) {
-            res.json(data);
-        },
-        function findAllError(err) {
-            res.send(500, err.message);
-        }
-    );
+        .then(book => res.status(200).json(book))
+        .catch(err => res.status(500).json({
+            error: err
+        })
+        );
 });
 
-//GET A SPECIFIC LOG
-router.get('/one/log/:id', function (req, res) {
-    var data = req.params.id;
-    var userid = req.user.id;
-
-    Log.findOne({
-        where: { id: data, owner: userid }
-    }).then(
-        function findOneSuccess(data) {
-            res.json(data);
+//GET A SPECIFIC BOOK
+router.get('/find', (req, res) => {
+    User.findOne({
+        where: {
+            id: req.user.id
         },
-        function findOneError(err) {
-            res.send(500, err.message)
-        }
-    );
+        include: ["books"]
+    }).then(books => res.status(200).json(books))
+        .catch(err => res.status(500).json({
+            error: err
+        }))
 });
 
 //PUT SPECIFIC LOG BUT UPDATE
-router.put('/update/:id', function (req, res) {
-    var data = req.params.id;
-    var userid = req.user.id;
-    var title = req.body.title;
-    var author = req.body.author;
-    var genre = req.body.genre;
-    var rating = req.body.rating;
-    var description = req.body.description;
-    var review = req.body.review;
-
-    Log.update({
-        title: title,
-        author: author,
-        genre: genre,
-        rating: rating,
-        description: description,
-        review: review
-    }, {
+router.put('/update/:id', (req, res) => {
+    Books.update(req.body, {
         where: {
-            id: data,
-            owner: userid
+            id: req.params.id
         }
     })
-
-        .then(
-            function updateSuccess(updatedLog) {
-                res.json({
-                    updatedLog
-                });
-            },
-            function updateError(err) {
-                res.send(500, err.message);
-            }
-        )
-    console.log(req.user.id)
-    console.log(req.params.id);
+        .then(books => res.status(200).json(books))
+        .catch(err => res.json(res.errors))
 })
 
 //DELETE LOG
-router.delete('/delete/:id', function (req, res) {
-    var data = req.params.id;
-    var userid = req.user.id;
-
-    Log.destroy({
-        where: { id: data, owner: userid }
-    }).then(
-        function deleteLogSuccess(data) {
-            res.send("You removed a book.");
-        },
-        function deleteLogError(err) {
-            res.send(500, err.message);
+router.delete('/delete/:id', (req, res) => {
+    Books.destroy({
+        where: {
+            id: req.params.id
         }
-    );
-});
+    })
+        .then(books => res.status(200).json(books))
+        .catch(err => res.json({
+            error: err
+        }))
+})
 
 module.exports = router;

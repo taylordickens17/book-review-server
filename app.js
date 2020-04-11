@@ -1,15 +1,15 @@
 require('dotenv').config();
 
 //EXPRESS
-var express = require('express');
-var app = express();
+const express = require('express');
+const app = express();
 
 //CONTROLLER IMPORTS
-var test = require('./controllers/bookcontroller');
-var user = require('./controllers/usercontroller');
+const user = require('./controllers/usercontroller');
+const book = require('./controllers/bookcontroller');
 
 //SEQUELIZES TO THE DB
-var sequelize = require('./db');
+const sequelize = require('./db');
 
 //SENDS EVERYTHING TO THE DB. FORCE TRUE RESETS THE TABLE.
 sequelize.sync();
@@ -24,6 +24,6 @@ app.use('/user', user);
 
 //PROTECTED ROUTE
 app.use(require('./middleware/validate-session'));
-app.use('/auth', test)
+app.use('/book', book);
 
 app.listen(process.env.PORT, () => console.log(`app is listening on ${process.env.PORT}`));

@@ -1,9 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const Log = sequelize.define('log', {
-        owner: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
+    const Books = sequelize.define('books', {
         title: {
             type: DataTypes.STRING,
             allowNull: false
@@ -29,5 +25,5 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         }
     })
-    return Log;
+    return Books;
 }
