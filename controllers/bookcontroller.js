@@ -34,12 +34,10 @@ router.get('/allbooks', (req, res) => {
 
 //GET A SPECIFIC BOOK
 router.get('/find', (req, res) => {
-    User.findOne({
-        where: {
-            id: req.user.id
-        },
-        include: ["books"]
-    }).then(books => res.status(200).json(books))
+    Books.findAll({
+        where: { userId: req.user.id }
+    })
+        .then(books => res.status(200).json(books))
         .catch(err => res.status(500).json({
             error: err
         }))
